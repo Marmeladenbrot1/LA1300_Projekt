@@ -1,0 +1,421 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using static System.Console;
+using System.Threading;
+using System.Diagnostics;
+using System.IO;
+
+namespace Voci_lernen
+{
+    class Program
+    {
+        static void Main()
+        {
+            MainMenu();
+        }
+
+        static void MainMenu()
+        {
+            string Titel = @"
+██╗   ██╗ ██████╗ ██╗  ██╗ █████╗ ██████╗ ███████╗██╗         ██╗     ███████╗██████╗ ███╗   ██╗███████╗███╗   ██╗
+██║   ██║██╔═══██╗██║ ██╔╝██╔══██╗██╔══██╗██╔════╝██║         ██║     ██╔════╝██╔══██╗████╗  ██║██╔════╝████╗  ██║
+██║   ██║██║   ██║█████╔╝ ███████║██████╔╝█████╗  ██║         ██║     █████╗  ██████╔╝██╔██╗ ██║█████╗  ██╔██╗ ██║
+╚██╗ ██╔╝██║   ██║██╔═██╗ ██╔══██║██╔══██╗██╔══╝  ██║         ██║     ██╔══╝  ██╔══██╗██║╚██╗██║██╔══╝  ██║╚██╗██║
+ ╚████╔╝ ╚██████╔╝██║  ██╗██║  ██║██████╔╝███████╗███████╗    ███████╗███████╗██║  ██║██║ ╚████║███████╗██║ ╚████║
+  ╚═══╝   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═════╝ ╚══════╝╚══════╝    ╚══════╝╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═══╝
+                                                                                                                  
+";
+            string[] options = { "Vokabeln lernen", "Über das Programm", "Programm beenden"};
+            Menu mainMenu = new Menu(Titel, options);
+            int selectedIndex = mainMenu.Run();
+
+            switch (selectedIndex)
+            {
+                case 0:
+                    VocabularyLearning();
+                    break;
+                case 1:
+                    AboutTheProgram();
+                    break;
+                case 2:
+                    ProgramEnds();
+                    break;
+            }
+        }
+
+        static void VocabularyLearning()
+        {
+            Double Combo = 1;
+            Double Points = 0;
+            Clear();
+            WriteLine("Gib nun deinen Namen ein.");
+            string Name = ReadLine();
+            Clear();
+
+            string inPath = @"..\..\..\Vokabeln.csv";
+            string text = File.ReadAllText(inPath);
+
+            string[] lines = text.Split("\r\n");
+            int words = lines.Length;
+            string[] Languageone = new string[words-1];
+            string[] Languagetwo = new string[words-1];
+            shuffleArray(lines);
+            for (int line = 0; line < lines.Length - 1; line++)
+            {
+                try
+                {
+                    string[] items = lines[line].Split(',');
+                    Languagetwo[line] = items[0];
+                    Languageone[line] = items[1].Replace("\"", string.Empty); ;
+                }
+                catch
+                {
+
+                }
+            }
+
+            for (int i = 0; i < Languageone.Length;i++)
+            {
+                if (Languagetwo[i] == "")
+                {
+                    Clear();
+                }
+                else
+                {
+                    WriteLine("Gib die Überstzung dieses Wortes ein. (Beachte, dass alle Umlaute ae und so weiter geschrieben werden)");
+                    WriteLine(Languagetwo[i]);
+
+                    Stopwatch stopWatch = new Stopwatch();
+                    stopWatch.Start();
+
+                    string Eingabe = ReadLine();
+
+                    stopWatch.Stop();
+                    TimeSpan ts = stopWatch.Elapsed;
+                    string elapsedTime = String.Format("{0:00}:{1:00}.{2:00}",
+                    ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+
+                    if (Eingabe == Languageone[i])
+                    {
+                        ForegroundColor = ConsoleColor.Green;
+                        WriteLine("Richtig");
+                        if (stopWatch.ElapsedMilliseconds < 3000)
+                        {
+                            Points = Points + (Math.Round(300 * Combo));
+                            WriteLine("Du hast " + (Math.Round(300 * Combo)) + " Punkte dazu bekommen. Nun hast du " + Points + " Punkte.");
+                            Combo = Combo + 0.05;
+                        }
+                        else if(stopWatch.ElapsedMilliseconds < 13000)
+                        {
+                            Points = Points + (Math.Round((100 + (20 * (((stopWatch.ElapsedMilliseconds - 13000) * (-1)) / 1000))) * Combo));
+                            WriteLine("Du hast " + (Math.Round((100 + (20 * (((stopWatch.ElapsedMilliseconds - 13000) * (-1)) / 1000))) * Combo)) + " Punkte dazu bekommen. Nun hast du " + Points + " Punkte.");
+                            Combo = Combo + 0.05;
+                        }
+                        else
+                        {
+                            Points = Points + (Math.Round(100 * Combo)); 
+                            WriteLine("Du hast " + (Math.Round(100 * Combo)) + " Punkte dazu bekommen. Nun hast du " + Points + " Punkte.");
+                            Combo = Combo + 0.05;
+                        }
+                        ResetColor();
+                        WriteLine("Drücke eine beliebige Taste um fortzufahren.");
+                        ReadKey(true);
+                    }
+                    else
+                    {
+                        Combo = 1;
+                        ForegroundColor = ConsoleColor.Red;
+                        WriteLine("falsch");
+                        ForegroundColor = ConsoleColor.Green;
+                        WriteLine("Richtig wäre " + Languageone[i]);
+                        WriteLine("Du hast keine Punkte bekommen. Du hast " + Points + " Punkte");
+                        ResetColor();
+                        WriteLine("Drücke eine beliebige Taste um fortzufahren.");
+                        ReadKey(true);
+                    }
+                    Clear();
+                }
+
+            }
+            Clear();
+            WriteLine("Du hast " + Points + " erreicht.");
+            ReadKey();
+            ranking(Name, Points);
+        }
+
+        static void AboutTheProgram()
+        {
+            Clear();
+            CursorVisible = false;
+            TextAnimationen.WriteAnimation("Dieses Programm wurde von uns, Shane Röllin, David Zumstein, Cedric Tuma und Nathan Göhl, entwickelt.");
+            WriteLine("");
+            TextAnimationen.WriteAnimation("Wir hatten den Auftrag einen Vokabellerner zu programmieren.");
+            WriteLine("");
+            TextAnimationen.WriteAnimation("Dies war unser erster Gruppenauftrag. Dabei übernahm Nathan die Teamleitung. Der schwerste Teil des ganzen Projekts war das Datei auslesen, da dies neu für uns war. ");
+            WriteLine("");
+            Thread.Sleep(1000);
+            CursorVisible = true;
+            WriteLine("Drücke eine beliebige Taste, um zum Menu zurück zu kehren.");
+            ReadKey(true);
+            MainMenu();
+        }
+
+        static void ProgramEnds()
+        {
+            Environment.Exit(0);
+        }
+
+        public static void shuffleArray(string[] Array)
+        {
+            int Length = Array.Length;
+            Random random = new Random();
+
+            for(int i = 0;i < Length; i++)
+            {
+                swap(Array, i, i + random.Next(Length - i));
+            }
+        }
+
+        public static void swap(string[] Array, int memory, int memorytwo)
+        {
+            string temp = Array[memory];
+            Array[memory] = Array[memorytwo];
+            Array[memorytwo] = temp;
+        }
+
+        static void Timer()
+        {
+            Clear();
+            Stopwatch stopWatch = new Stopwatch();
+            ReadKey();
+            stopWatch.Start();
+            ReadLine();
+            stopWatch.Stop();
+            TimeSpan ts = stopWatch.Elapsed;
+            string elapsedTime = String.Format("{0:00}:{1:00}.{2:00}",
+            ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+            WriteLine("RunTime " + elapsedTime);
+            ReadKey();
+            MainMenu();
+        }
+
+        static void Leaderboard()
+        {
+            string outText = @"Name,0
+Name,0
+Name,0
+Name,0
+Name,0";
+            string outPath = @"..\..\..\Leaderboard.csv";
+            File.WriteAllText(outPath, outText);
+        }
+
+        static void ranking(string Name, Double Points)
+        {
+            string inPath = @"..\..\..\Leaderboard.csv";
+            string text = File.ReadAllText(inPath);
+
+            string[] lines = text.Split("\r\n");
+            int words = lines.Length;
+            string[] Pointsachieved = new string[words];
+            string[] Player = new string[words];
+
+            for (int line = 0; line < lines.Length; line++)
+            {
+                try
+                {
+                    string[] items = lines[line].Split(',');
+                    Player[line] = items[0];
+                    Pointsachieved[line] = items[1].Replace("\"", string.Empty); ;
+                }
+                catch
+                {
+
+                }
+            }
+
+            Double[] Converte = new Double[5];
+
+            for (int i = 0; i<5; i++)
+            {
+                Converte[i] = Convert.ToInt64(Pointsachieved[i]);
+            
+            }
+
+            if (Converte[0] < Points)
+            {
+                Converte[4] = Converte[3];
+                Converte[3] = Converte[2];
+                Converte[2] = Converte[1];
+                Converte[1] = Converte[0];
+                Converte[0] = Points;
+                Player[4] = Player[3];
+                Player[3] = Player[2];
+                Player[2] = Player[1];
+                Player[1] = Player[0];
+                Player[0] = Name;
+            }
+            else if (Converte[1] < Points)
+            {
+                Converte[4] = Converte[3];
+                Converte[3] = Converte[2];
+                Converte[2] = Converte[1];
+                Converte[1] = Points;
+                Player[4] = Player[3];
+                Player[3] = Player[2];
+                Player[2] = Player[1];
+                Player[1] = Name;
+            }
+            else if (Converte[2] < Points)
+            {
+                Converte[4] = Converte[3];
+                Converte[3] = Converte[2];
+                Converte[2] = Points;
+                Player[4] = Player[3];
+                Player[3] = Player[2];
+                Player[2] = Name;
+            }
+            else if (Converte[3] < Points)
+            {
+                Converte[4] = Converte[3];
+                Converte[3] = Points;
+                Player[4] = Player[3];
+                Player[3] = Name;
+            }
+            else if (Converte[4] < Points)
+            {
+                Converte[4] = Points;
+                Player[4] = Name;
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                Pointsachieved[i] = Convert.ToString(Converte[i]);
+            }
+
+
+            string outPath = @"..\..\..\Leaderboard.csv";
+            string outText = Player[0] + "," + Pointsachieved[0] + @"
+" + Player[1] + "," + Pointsachieved[1] + @"
+" + Player[2] + "," + Pointsachieved[2] + @"
+" + Player[3] + "," + Pointsachieved[3] + @"
+" + Player[4] + "," + Pointsachieved[4] + @"
+";
+            File.WriteAllText(outPath, outText);
+
+            Clear();
+
+            for (int i = 0;i < Pointsachieved.Length; i++)
+            {
+                WriteLine(Player[i] + " " + Pointsachieved[i]);
+            }
+            ReadKey();
+            MainMenu();
+        }
+    }
+    
+    
+    
+    class Menu
+    {
+        private int SelectedIndex;
+        private string[] Options;
+        private string Prompt;
+
+        public Menu(string prompt, string[] options)
+        {
+            Prompt = prompt;
+            Options = options;
+            SelectedIndex = 0;
+        }
+
+        private void DisplayOptions()
+        {
+            WriteLine(Prompt);
+            for (int i = 0; i < Options.Length; i++)
+            {
+                string currentOption = Options[i];
+                string prefix;
+
+                if (i == SelectedIndex)
+                {
+                    prefix = "*";
+                    ForegroundColor = ConsoleColor.Black;
+                    BackgroundColor = ConsoleColor.White;
+                }
+                else
+                {
+                    prefix = " ";
+                    ForegroundColor = ConsoleColor.White;
+                    BackgroundColor = ConsoleColor.Black;
+                }
+
+                WriteLine($"{prefix}<< {currentOption} >>");
+
+            }
+            ResetColor();
+        }
+
+        public int Run()
+        {
+            ConsoleKey keyPressed;
+            do
+            {
+                Clear();
+                DisplayOptions();
+
+                ConsoleKeyInfo keyInfo = ReadKey(true);
+                keyPressed = keyInfo.Key;
+
+                if (keyPressed == ConsoleKey.UpArrow)
+                {
+                    SelectedIndex--;
+                    if (SelectedIndex == -1)
+                    {
+                        SelectedIndex = Options.Length - 1;
+                    }
+                }
+                else if (keyPressed == ConsoleKey.DownArrow)
+                {
+                    SelectedIndex++;
+                    if (SelectedIndex == Options.Length)
+                    {
+                        SelectedIndex = 0;
+                    }
+                }
+
+            } while (keyPressed != ConsoleKey.Enter);
+
+
+            return SelectedIndex;
+        }
+    }
+    
+    
+    
+    class TextAnimationen
+    {
+        public static void Blinkeffect(string Text, int blinkCount = 5, int onTime = 500, int offTime = 200)
+        {
+            CursorVisible = false;
+
+            for (int i = 0; i < blinkCount; i++)
+            {
+                WriteLine(Text);
+                Thread.Sleep(onTime);
+                Clear();
+                Thread.Sleep(offTime);
+            }
+            CursorVisible = true;
+        }
+        public static void WriteAnimation(string text, int delay = 40)
+        {
+            for (int i = 0; i < text.Length; i++)
+            {
+                Write(text[i]);
+                Thread.Sleep(delay);
+            }
+        }
+    }
+}
